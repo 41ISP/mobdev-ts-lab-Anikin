@@ -1,41 +1,67 @@
 import PaymentForm from "../components/PaymentForm"
 import PaymentItem from "../components/PaymentItem"
 import { formatMoney } from "../format"
+import { usePaymentsStore } from "../store"
 
 export default function PaymentsPage() {
-    const sorted: any[] = [1]
-    const total = 0
-    const paid = 0
+    const items = usePaymentsStore((state) => state.items) 
+    const total = items.reduce((sum, p) => sum + p.amount, 0)
+    const paid = items.filter((p) => p.paid).reduce((sum, p ) => sum + p.amount, 0)
+
+    const sorted = [...items].sort((a,b) => 
+    {
+        return (Number(a.paid) - Number(b.paid)) || a.due.localeCompare(b.due)
+    })
 
     return (
         <>
-            <section className="sum" aria-label="Итоги месяца">
-                <small>Всего в месяц</small>
-                <b>{formatMoney(total)}</b>
-                <div className="split">
-                    <div>
-                        <small>Оплачено</small>
-                        <strong>{formatMoney(paid)}</strong>
+            <section
+                className="sum" 
+                aria-label="Итоги месяца">
+                <small>
+                    Всего в месяц
+                </small>
+                <b>
+                    {formatMoney(total)}
+                </b>
+                <div 
+                    className="split">
+                <div>
+                    <small>
+                        Оплачено
+                    </small>
+                        <strong>
+                            {formatMoney(total - paid)}
+                        </strong>
                     </div>
                     <div>
-                        <small>Осталось</small>
-                        <strong>{formatMoney(total - paid)}</strong>
+                        <small>
+                            Осталось
+                        </small>
+                        <strong>
+                            {formatMoney(total - paid)}
+                        </strong>
                     </div>
                 </div>
             </section>
 
             <PaymentForm />
 
-            <h2 className="h plain">Ближайшие платежи</h2>
+            <h2 
+            className="h plain">Ближайшие платежи
+            </h2>
             {sorted.length === 0 ? (
-                <p className="empty">
+                <p 
+                className="empty">
                     Подписок пока нет. Добавьте первую в форме выше.
                 </p>
             ) : (
-                <ul className="list">
+                <ul 
+                className="list">
                     {sorted.map((p) => (
-                        <PaymentItem key={p.id} />
-                    ))}
+                        <PaymentItem 
+                            key={p.id} payment={p} />
+                        ))}
                 </ul>
             )}
         </>
